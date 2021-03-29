@@ -2,21 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import TodoItem from './TodoItem'
 
-const TodoList = ({ filteredTodos, actions }) => (
-  <ul className="todo-list">
-    {filteredTodos.map(todo =>
-      <TodoItem key={todo.id} todo={todo} {...actions} />
-    )}
-  </ul>
-)
+const TodoList = ({ children }) => <ul className='todo-list'>{children}</ul>
 
-TodoList.propTypes = {
-  filteredTodos: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    completed: PropTypes.bool.isRequired,
-    text: PropTypes.string.isRequired
-  }).isRequired).isRequired,
-  actions: PropTypes.object.isRequired
-}
+TodoList.propTypes = {}
 
 export default TodoList

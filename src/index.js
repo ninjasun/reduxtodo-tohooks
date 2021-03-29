@@ -1,23 +1,6 @@
 import React from 'react'
-import { render } from 'react-dom'
-import { createStore, applyMiddleware } from 'redux'
-import createSagaMiddleware from 'redux-saga'
-import { Provider } from 'react-redux'
-import { rootSaga } from './sagas/TodoSagas'
+import ReactDOM from 'react-dom'
 import App from './components/App'
-import reducer from './reducers'
 import 'todomvc-app-css/index.css'
 
-const sagaMiddleware = createSagaMiddleware()
-const store = createStore(reducer, applyMiddleware(sagaMiddleware))
-sagaMiddleware.run(rootSaga)
-
-if (window.Cypress) {
-  window.store = store
-}
-render(
-  <Provider store={store}>
-    <App store={store} />
-  </Provider>,
-  document.getElementById('root')
-)
+ReactDOM.render(<App />, document.getElementById('root'))
