@@ -1,8 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Link from './Link'
+import Link from '../Link'
 import { map, curry } from 'ramda'
-import { SHOW_ALL, SHOW_COMPLETED, SHOW_ACTIVE } from '../constants/TodoFilters'
+import {
+  SHOW_ALL,
+  SHOW_COMPLETED,
+  SHOW_ACTIVE
+} from '../../constants/TodoFilters'
 
 const FILTER_TITLES = [
   {

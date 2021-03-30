@@ -1,45 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import Header from './Header'
-import Footer from './Footer'
-import TodoItem from './TodoItem'
-import TodoList from './TodoList'
-import { filter, concat, curry, map, reduce } from 'ramda'
+import Header from './header/Header'
+import Footer from './footer/Footer'
+import TodoItem from './todo-item/TodoItem'
+import TodoList from './todo-list/TodoList'
+import { filter, curry, map, reduce } from 'ramda'
+import { replaceItem, replaceAll, concatItem, destroyItem } from '../utils'
 import { SHOW_ALL, SHOW_COMPLETED, SHOW_ACTIVE } from '../constants/TodoFilters'
-const api = `http://localhost:3000/api`
-
-/********* UTILS ************ */
-const isDiff = curry((id, item) => item.id !== id)
-
-const replace = curry((updatedItem, item) =>
-  item.id === updatedItem.id ? updatedItem : item
-)
-
-/*
- * @{param} list
- * @{param} cb
- * @{param} item
- */
-const replaceItem = curry((list, cb, item) => {
-  const replaced = replace(item)
-  const updatedList = map(replaced, list)
-  cb(updatedList)
-})
-
-const replaceAll = curry((cb, list) => {
-  console.log(list)
-  cb(list)
-})
-
-const concatItem = curry((list, cb, item) => {
-  const upList = concat([item], list)
-  cb(upList)
-})
-
-const destroyItem = curry((list, cb, itemId) => {
-  const isItemDiff = isDiff(itemId)
-  const upList = filter(isItemDiff, list)
-  cb(upList)
-})
+import {
+  fetchTodos,
+  createTodo,
+  destroyTodo,
+  updateTodo,
+  bulkUpdateTodos,
+  bulkDeleteTodos
+} from '../API/todos'
 
 const getTodosCount = list => list.length
 const getCompletedTodosCount = reduce((count, item) =>
@@ -59,9 +33,7 @@ const renderTodos = curry((todos, filterType) => {
 const showCompleted = item => item.completed && item
 const showActive = item => !item.completed && item
 const showAll = item => item
-
 /** must be enum ( SHOW_ALL, SHOW_COMPLETED, SHOW_ACTIVE ) */
-
 const setupCompare = filterType => {
   switch (filterType) {
     case SHOW_COMPLETED:
@@ -72,92 +44,8 @@ const setupCompare = filterType => {
       return showAll
   }
 }
-/************  API   *************** */
 
-/*********** FETCH ********************* */
-const fetchFromAPI = curry((baseURL, endPoint, cb) => {
-  fetch(`${baseURL}${endPoint}`)
-    .then(res => res.json())
-    .then(data => cb(data))
-    .catch(err => console.error(err.message))
-})
-const fetchTodoApi = fetchFromAPI(api)
-const fetchTodos = fetchTodoApi('/todos')
-/************* CREATE  **********************/
-const postToAPI = curry((baseURL, endPoint, body, cb) => {
-  fetch(`${baseURL}${endPoint}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: JSON.stringify(body)
-  })
-    .then(res => res.json())
-    .then(data => cb(data))
-    .catch(err => console.error(err.message))
-})
-const createTodo = postToAPI(api, '/todos')
-/************  DELETE ***************/
-const deleteFromAPI = curry((baseURL, endPoint, cb) => {
-  fetch(`${baseURL}${endPoint}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
-    .then(res => res.json())
-    .then(data => cb(data))
-    .catch(err => console.error(err.message))
-})
-const destroyTodo = deleteFromAPI(api)
-/***********  UPDATE ****************/
-const updateFromAPI = curry((baseURL, endPoint, data, cb) => {
-  fetch(`${baseURL}${endPoint}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-    headers: {
-      'Content-Type': 'application/json'
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    }
-  })
-    .then(res => res.json())
-    .then(data => cb(data))
-    .catch(err => console.error(err.message))
-})
-const putTodo = updateFromAPI(api)
-/********** BULK UPDATE **********/
-const bulkUpdateFromAPI = curry((baseURL, endPoint, data, cb) => {
-  fetch(`${baseURL}${endPoint}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-    headers: {
-      'Content-Type': 'application/json'
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    }
-  })
-    .then(res => res.json())
-    .then(data => cb(data))
-    .catch(err => console.error(err.message))
-})
-const bulkUpdateTodos = bulkUpdateFromAPI(api, '/todos/bulk_update')
 const complete = item => ({ ...item, completed: true })
-
-/********** BULK DELETE **********/
-const bulkDeleteFromAPI = curry((baseURL, endPoint, ids, cb) => {
-  fetch(`${baseURL}${endPoint}`, {
-    method: 'POST',
-    body: JSON.stringify(ids),
-    headers: {
-      'Content-Type': 'application/json'
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    }
-  })
-    .then(res => res.json())
-    .then(data => cb(data))
-    .catch(err => console.error(err.message))
-})
-const bulkDeleteTodos = bulkDeleteFromAPI(api, '/todos/bulk_delete')
 
 /************************************************ */
 const App = () => {
@@ -180,22 +68,23 @@ const App = () => {
     createTodo({ text, completed: false })(concatItem(todos, setTodos))
   }
 
-  const updateTodo = todo => {
-    putTodo(`/todos/${todo.id}`, todo)(replaceItem(todos, setTodos))
+  const editTodo = todo => {
+    updateTodo(`/${todo.id}`, todo)(replaceItem(todos, setTodos))
   }
 
   const deleteTodo = id => {
-    destroyTodo(`/todos/${id}`)(destroyItem(todos, setTodos, id))
+    destroyTodo(`/${id}`)(destroyItem(todos, setTodos, id))
   }
 
   const completeAllTodos = () => {
     const completed = map(complete, todos)
+
     bulkUpdateTodos({ todos: completed })(replaceAll(setTodos))
   }
 
   const destroyAllTodos = () => {
-    //const ids = map(filter())
-    //bulkDeleteTodos(ids, setTodos)
+    const ids = todos.map(item => item.id)
+    bulkDeleteTodos(ids, setTodos)
   }
 
   const handleFilter = (e, filter) => {
@@ -207,7 +96,7 @@ const App = () => {
     <TodoItem
       key={todo.id}
       todo={todo}
-      editTodo={updateTodo}
+      editTodo={editTodo}
       deleteTodo={deleteTodo}
     />
   )
@@ -234,7 +123,7 @@ const App = () => {
       <Footer
         activeCount={activeCount}
         completedCount={completedCount}
-        onClearCompleted={() => {}}
+        onClearCompleted={destroyAllTodos}
         setFilter={handleFilter}
         filterType={filterType}
       />
