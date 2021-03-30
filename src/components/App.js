@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Footer from './Footer'
-import MainSection from './MainSection'
-
 import TodoItem from './TodoItem'
 import TodoList from './TodoList'
-import { filter, concat, curry, map, compose, reduce } from 'ramda'
+import { filter, concat, curry, map, reduce } from 'ramda'
 import { SHOW_ALL, SHOW_COMPLETED, SHOW_ACTIVE } from '../constants/TodoFilters'
 const api = `http://localhost:3000/api`
 
@@ -160,7 +158,6 @@ const App = () => {
 
   const handleFilter = (e, filter) => {
     e.preventDefault()
-    console.log(filter)
     setFilter(filter)
   }
 
@@ -174,10 +171,10 @@ const App = () => {
   )
 
   const todosCount = getTodosCount(todos)
-  const completedCount = getCompletedTodosCount(todos)
-  const activeCount = getActiveTodosCount(todos)
-
+  const completedCount = getCompletedTodosCount(0, todos)
+  const activeCount = getActiveTodosCount(0, todos)
   const filteredTodos = renderTodos(todos, filterType)
+
   return (
     <div>
       <Header addTodo={addTodo} />
@@ -198,6 +195,7 @@ const App = () => {
         completedCount={completedCount}
         onClearCompleted={() => {}}
         setFilter={handleFilter}
+        filterType={filterType}
       />
     </div>
   )

@@ -19,10 +19,16 @@ const FILTER_TITLES = [
   }
 ]
 
-const renderFilter = curry((onClick, filter) => {
+const renderFilter = curry((onClick, filterType, filter) => {
+  console.log('filterType ', filterType)
+  console.log('filter: ', filter)
   return (
     <li key={filter.code}>
-      <Link filter={filter.code} setFilter={onClick}>
+      <Link
+        filter={filter.code}
+        setFilter={onClick}
+        active={filterType === filter.code}
+      >
         {filter.name}
       </Link>
     </li>
@@ -33,10 +39,11 @@ const Footer = ({
   activeCount,
   completedCount,
   onClearCompleted,
-  setFilter
+  setFilter,
+  filterType
 }) => {
   const itemWord = activeCount === 1 ? 'item' : 'items'
-  const rendered = renderFilter(setFilter)
+  const rendered = renderFilter(setFilter, filterType)
   return (
     <footer className='footer'>
       <span className='todo-count'>
