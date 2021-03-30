@@ -13,13 +13,21 @@ const isDiff = curry((id, item) => {
   console.log('item: ', item)
   return item.id !== id
 })
-const replace = curry((updatedTodo, todo) =>
-  todo.id === updatedTodo.id ? updatedTodo : todo
+const replace = curry((updatedItem, item) =>
+  item.id === updatedItem.id ? updatedItem : item
 )
+
+const replaceItem = curry((item, list, cb) => {
+  const replaced = replace(item)
+  const updatedList = map(replaced, list)
+  cb(updatedList)
+})
 
 const update = curry((todos, cb, item) => {
   cb(concat([item], todos))
 })
+
+const concatItem = curry((list, cb, item) => cb(concat([item], list)))
 
 /*************************** */
 
@@ -46,7 +54,7 @@ const postToAPI = curry((baseURL, endPoint, body, cb) => {
     .catch(err => console.error(err.message))
 })
 
-const postTodo = postToAPI(api, '/todos')
+const createTodo = postToAPI(api, '/todos')
 
 const deleteFromAPI = curry((baseURL, endPoint, cb) => {
   fetch(`${baseURL}${endPoint}`, {
@@ -88,17 +96,16 @@ const App = () => {
   }, [])
 
   const addTodo = text => {
-    postTodo({ text, completed: false })(update(todos, setTodos))
+    createTodo({ text, completed: false })(concatItem(todos, setTodos))
   }
 
   const updateTodo = todo => {
     putTodo(
       `/todos/${todo.id}`,
       todo
-    )(t => {
-      const replaceItem = replace(t)
-      const updatedTodos = map(replaceItem, todos)
-      setTodos(updatedTodos)
+    )(updatedTodo => {
+      replaceItem(updatedTodo, todos, setTodos)
+      //setTodos(updatedTodos)
     })
   }
 
