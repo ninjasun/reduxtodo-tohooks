@@ -43,7 +43,7 @@ function TodoItem ({ todo, editTodo, deleteTodo }) {
           type='checkbox'
           checked={todo.completed}
           onChange={() => {
-            editTodo(todo.id, merge(todo, { completed: !todo.completed }))
+            editTodo(merge(todo, { completed: !todo.completed }))
           }}
         />
         <label onDoubleClick={handleDoubleClick}>{todo.text}</label>

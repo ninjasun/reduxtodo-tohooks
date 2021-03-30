@@ -17,6 +17,10 @@ const replace = curry((updatedTodo, todo) =>
   todo.id === updatedTodo.id ? updatedTodo : todo
 )
 
+const update = curry((todos, cb, item) => {
+  cb(concat([item], todos))
+})
+
 /*************************** */
 
 const fetchFromAPI = curry((baseURL, endPoint, cb) => {
@@ -78,25 +82,21 @@ const App = () => {
   const [todos, setTodos] = useState([])
 
   useEffect(() => {
-    fetchTodos(d => {
-      console.log(d)
-      setTodos(d)
+    fetchTodos(t => {
+      setTodos(t)
     })
   }, [])
 
   const addTodo = text => {
-    postTodo({ text, completed: false })(update)
-    function update (d) {
-      setTodos(concat([d], todos))
-    }
+    postTodo({ text, completed: false })(update(todos, setTodos))
   }
 
   const updateTodo = todo => {
     putTodo(
       `/todos/${todo.id}`,
       todo
-    )(d => {
-      const replaceItem = replace(d)
+    )(t => {
+      const replaceItem = replace(t)
       const updatedTodos = map(replaceItem, todos)
       setTodos(updatedTodos)
     })

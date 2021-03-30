@@ -1,18 +1,8 @@
 {
   "todos": [
     {
-      "text": "ciao poppiaaa sdf sdf aaa",
-      "completed": false,
-      "id": 1
-    },
-    {
-      "text": "AAAA",
-      "completed": false,
-      "id": 2
-    },
-    {
       "text": "ASS",
-      "completed": false,
+      "completed": true,
       "id": 3
     },
     {
@@ -24,6 +14,11 @@
       "text": "aa",
       "completed": false,
       "id": 5
+    },
+    {
+      "text": "aasd",
+      "completed": false,
+      "id": 6
     }
   ]
 }
