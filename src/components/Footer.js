@@ -20,8 +20,6 @@ const FILTER_TITLES = [
 ]
 
 const renderFilter = curry((onClick, filterType, filter) => {
-  console.log('filterType ', filterType)
-  console.log('filter: ', filter)
   return (
     <li key={filter.code}>
       <Link

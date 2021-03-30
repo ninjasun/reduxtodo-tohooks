@@ -2,17 +2,17 @@
   "todos": [
     {
       "text": "ASS",
-      "completed": false,
+      "completed": true,
       "id": 3
     },
     {
       "text": "ciao",
-      "completed": false,
+      "completed": true,
       "id": 4
     },
     {
       "text": "bud spencer",
-      "completed": false,
+      "completed": true,
       "id": 5
     },
     {
@@ -27,7 +27,7 @@
     },
     {
       "text": "agghicacciante",
-      "completed": false,
+      "completed": true,
       "id": 8
     }
   ]

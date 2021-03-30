@@ -25,6 +25,11 @@ const replaceItem = curry((list, cb, item) => {
   cb(updatedList)
 })
 
+const replaceAll = curry((cb, list) => {
+  console.log(list)
+  cb(list)
+})
+
 const concatItem = curry((list, cb, item) => {
   const upList = concat([item], list)
   cb(upList)
@@ -67,8 +72,9 @@ const setupCompare = filterType => {
       return showAll
   }
 }
-/*************************** */
+/************  API   *************** */
 
+/*********** FETCH ********************* */
 const fetchFromAPI = curry((baseURL, endPoint, cb) => {
   fetch(`${baseURL}${endPoint}`)
     .then(res => res.json())
@@ -77,7 +83,7 @@ const fetchFromAPI = curry((baseURL, endPoint, cb) => {
 })
 const fetchTodoApi = fetchFromAPI(api)
 const fetchTodos = fetchTodoApi('/todos')
-
+/************* CREATE  **********************/
 const postToAPI = curry((baseURL, endPoint, body, cb) => {
   fetch(`${baseURL}${endPoint}`, {
     method: 'POST',
@@ -91,9 +97,8 @@ const postToAPI = curry((baseURL, endPoint, body, cb) => {
     .then(data => cb(data))
     .catch(err => console.error(err.message))
 })
-
 const createTodo = postToAPI(api, '/todos')
-
+/************  DELETE ***************/
 const deleteFromAPI = curry((baseURL, endPoint, cb) => {
   fetch(`${baseURL}${endPoint}`, {
     method: 'DELETE',
@@ -106,7 +111,7 @@ const deleteFromAPI = curry((baseURL, endPoint, cb) => {
     .catch(err => console.error(err.message))
 })
 const destroyTodo = deleteFromAPI(api)
-
+/***********  UPDATE ****************/
 const updateFromAPI = curry((baseURL, endPoint, data, cb) => {
   fetch(`${baseURL}${endPoint}`, {
     method: 'PUT',
@@ -121,11 +126,45 @@ const updateFromAPI = curry((baseURL, endPoint, data, cb) => {
     .catch(err => console.error(err.message))
 })
 const putTodo = updateFromAPI(api)
+/********** BULK UPDATE **********/
+const bulkUpdateFromAPI = curry((baseURL, endPoint, data, cb) => {
+  fetch(`${baseURL}${endPoint}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    }
+  })
+    .then(res => res.json())
+    .then(data => cb(data))
+    .catch(err => console.error(err.message))
+})
+const bulkUpdateTodos = bulkUpdateFromAPI(api, '/todos/bulk_update')
+const complete = item => ({ ...item, completed: true })
+
+/********** BULK DELETE **********/
+const bulkDeleteFromAPI = curry((baseURL, endPoint, ids, cb) => {
+  fetch(`${baseURL}${endPoint}`, {
+    method: 'POST',
+    body: JSON.stringify(ids),
+    headers: {
+      'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    }
+  })
+    .then(res => res.json())
+    .then(data => cb(data))
+    .catch(err => console.error(err.message))
+})
+const bulkDeleteTodos = bulkDeleteFromAPI(api, '/todos/bulk_delete')
 
 /************************************************ */
 const App = () => {
   const [todos, setTodos] = useState([])
   const [filterType, setFilter] = useState(SHOW_ALL)
+
+  const filteredTodos = renderTodos(todos, filterType)
 
   useEffect(() => {
     fetchTodos(t => {
@@ -135,7 +174,6 @@ const App = () => {
 
   useEffect(() => {
     setupCompare(filterType)
-    //setTodos(filteredTodos)
   }, [filterType])
 
   const addTodo = text => {
@@ -149,11 +187,15 @@ const App = () => {
   const deleteTodo = id => {
     destroyTodo(`/todos/${id}`)(destroyItem(todos, setTodos, id))
   }
-  /** to do add api call: bulk_update */
+
   const completeAllTodos = () => {
-    const complete = item => ({ ...item, completed: true })
-    const completedAll = map(complete, todos)
-    setTodos(completedAll)
+    const completed = map(complete, todos)
+    bulkUpdateTodos({ todos: completed })(replaceAll(setTodos))
+  }
+
+  const destroyAllTodos = () => {
+    //const ids = map(filter())
+    //bulkDeleteTodos(ids, setTodos)
   }
 
   const handleFilter = (e, filter) => {
@@ -173,7 +215,6 @@ const App = () => {
   const todosCount = getTodosCount(todos)
   const completedCount = getCompletedTodosCount(0, todos)
   const activeCount = getActiveTodosCount(0, todos)
-  const filteredTodos = renderTodos(todos, filterType)
 
   return (
     <div>
