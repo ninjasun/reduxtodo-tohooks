@@ -5,30 +5,70 @@ import MainSection from './MainSection'
 
 import TodoItem from './TodoItem'
 import TodoList from './TodoList'
-import { filter, concat, curry, map } from 'ramda'
+import { filter, concat, curry, map, compose, reduce } from 'ramda'
+import { SHOW_ALL, SHOW_COMPLETED, SHOW_ACTIVE } from '../constants/TodoFilters'
 const api = `http://localhost:3000/api`
 
 /********* UTILS ************ */
-const isDiff = curry((id, item) => {
-  console.log('item: ', item)
-  return item.id !== id
-})
+const isDiff = curry((id, item) => item.id !== id)
+
 const replace = curry((updatedItem, item) =>
   item.id === updatedItem.id ? updatedItem : item
 )
 
-const replaceItem = curry((item, list, cb) => {
+/*
+ * @{param} list
+ * @{param} cb
+ * @{param} item
+ */
+const replaceItem = curry((list, cb, item) => {
   const replaced = replace(item)
   const updatedList = map(replaced, list)
   cb(updatedList)
 })
 
-const update = curry((todos, cb, item) => {
-  cb(concat([item], todos))
+const concatItem = curry((list, cb, item) => {
+  const upList = concat([item], list)
+  cb(upList)
 })
 
-const concatItem = curry((list, cb, item) => cb(concat([item], list)))
+const destroyItem = curry((list, cb, itemId) => {
+  const isItemDiff = isDiff(itemId)
+  const upList = filter(isItemDiff, list)
+  cb(upList)
+})
 
+const getTodosCount = list => list.length
+const getCompletedTodosCount = reduce((count, item) =>
+  item.completed ? count + 1 : count
+)
+
+const getActiveTodosCount = reduce((count, item) =>
+  !item.completed ? count + 1 : count
+)
+
+const renderTodos = curry((todos, filterType) => {
+  const compare = setupCompare(filterType)
+  return filter(compare, todos)
+})
+
+/*** filter logic */
+const showCompleted = item => item.completed && item
+const showActive = item => !item.completed && item
+const showAll = item => item
+
+/** must be enum ( SHOW_ALL, SHOW_COMPLETED, SHOW_ACTIVE ) */
+
+const setupCompare = filterType => {
+  switch (filterType) {
+    case SHOW_COMPLETED:
+      return showCompleted
+    case SHOW_ACTIVE:
+      return showActive
+    default:
+      return showAll
+  }
+}
 /*************************** */
 
 const fetchFromAPI = curry((baseURL, endPoint, cb) => {
@@ -61,7 +101,6 @@ const deleteFromAPI = curry((baseURL, endPoint, cb) => {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
-      // 'Content-Type': 'application/x-www-form-urlencoded',
     }
   })
     .then(res => res.json())
@@ -88,6 +127,7 @@ const putTodo = updateFromAPI(api)
 /************************************************ */
 const App = () => {
   const [todos, setTodos] = useState([])
+  const [filterType, setFilter] = useState(SHOW_ALL)
 
   useEffect(() => {
     fetchTodos(t => {
@@ -95,27 +135,33 @@ const App = () => {
     })
   }, [])
 
+  useEffect(() => {
+    setupCompare(filterType)
+    //setTodos(filteredTodos)
+  }, [filterType])
+
   const addTodo = text => {
     createTodo({ text, completed: false })(concatItem(todos, setTodos))
   }
 
   const updateTodo = todo => {
-    putTodo(
-      `/todos/${todo.id}`,
-      todo
-    )(updatedTodo => {
-      replaceItem(updatedTodo, todos, setTodos)
-      //setTodos(updatedTodos)
-    })
+    putTodo(`/todos/${todo.id}`, todo)(replaceItem(todos, setTodos))
   }
 
   const deleteTodo = id => {
-    const isDiffItem = isDiff(id)
-    destroyTodo(`/todos/${id}`)(() => {
-      const updatedTodo = filter(isDiffItem, todos)
+    destroyTodo(`/todos/${id}`)(destroyItem(todos, setTodos, id))
+  }
+  /** to do add api call: bulk_update */
+  const completeAllTodos = () => {
+    const complete = item => ({ ...item, completed: true })
+    const completedAll = map(complete, todos)
+    setTodos(completedAll)
+  }
 
-      setTodos(updatedTodo)
-    })
+  const handleFilter = (e, filter) => {
+    e.preventDefault()
+    console.log(filter)
+    setFilter(filter)
   }
 
   const renderTodo = todo => (
@@ -127,12 +173,32 @@ const App = () => {
     />
   )
 
+  const todosCount = getTodosCount(todos)
+  const completedCount = getCompletedTodosCount(todos)
+  const activeCount = getActiveTodosCount(todos)
+
+  const filteredTodos = renderTodos(todos, filterType)
   return (
     <div>
       <Header addTodo={addTodo} />
-      <section>
-        <TodoList>{map(renderTodo, todos)} </TodoList>
+      <section className='main'>
+        <span>
+          <input
+            className='toggle-all'
+            type='checkbox'
+            checked={completedCount === todosCount}
+            readOnly
+          />
+          <label onClick={completeAllTodos} />
+        </span>
+        <TodoList>{map(renderTodo, filteredTodos)} </TodoList>
       </section>
+      <Footer
+        activeCount={activeCount}
+        completedCount={completedCount}
+        onClearCompleted={() => {}}
+        setFilter={handleFilter}
+      />
     </div>
   )
 }

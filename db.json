@@ -2,18 +2,33 @@
   "todos": [
     {
       "text": "ASS",
-      "completed": true,
+      "completed": false,
       "id": 3
     },
     {
-      "text": "aas ddff sdd",
+      "text": "ciao",
+      "completed": false,
+      "id": 4
+    },
+    {
+      "text": "bud spencer",
       "completed": false,
       "id": 5
     },
     {
-      "text": "aasd",
-      "completed": false,
+      "text": "buy milk",
+      "completed": true,
       "id": 6
+    },
+    {
+      "text": "buy condoms many many",
+      "completed": true,
+      "id": 7
+    },
+    {
+      "text": "agghicacciante",
+      "completed": false,
+      "id": 8
     }
   ]
 }
