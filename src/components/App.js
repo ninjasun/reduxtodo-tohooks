@@ -2,11 +2,22 @@ import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Footer from './Footer'
 import MainSection from './MainSection'
-import { curry, map, concat } from 'lodash'
+
 import TodoItem from './TodoItem'
 import TodoList from './TodoList'
-import { filter } from 'ramda'
+import { filter, concat, curry, map } from 'ramda'
 const api = `http://localhost:3000/api`
+
+/********* UTILS ************ */
+const isDiff = curry((id, item) => {
+  console.log('item: ', item)
+  return item.id !== id
+})
+const replace = curry((updatedTodo, todo) =>
+  todo.id === updatedTodo.id ? updatedTodo : todo
+)
+
+/*************************** */
 
 const fetchFromAPI = curry((baseURL, endPoint, cb) => {
   fetch(`${baseURL}${endPoint}`)
@@ -47,6 +58,22 @@ const deleteFromAPI = curry((baseURL, endPoint, cb) => {
 })
 const destroyTodo = deleteFromAPI(api)
 
+const updateFromAPI = curry((baseURL, endPoint, data, cb) => {
+  fetch(`${baseURL}${endPoint}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    }
+  })
+    .then(res => res.json())
+    .then(data => cb(data))
+    .catch(err => console.error(err.message))
+})
+const putTodo = updateFromAPI(api)
+
+/************************************************ */
 const App = () => {
   const [todos, setTodos] = useState([])
 
@@ -60,16 +87,20 @@ const App = () => {
   const addTodo = text => {
     postTodo({ text, completed: false })(update)
     function update (d) {
-      setTodos(concat(todos, d))
+      setTodos(concat([d], todos))
     }
   }
 
-  const updateTodo = todo => {}
-
-  const isDiff = curry((id, item) => {
-    console.log('item: ', item)
-    return item.id !== id
-  })
+  const updateTodo = todo => {
+    putTodo(
+      `/todos/${todo.id}`,
+      todo
+    )(d => {
+      const replaceItem = replace(d)
+      const updatedTodos = map(replaceItem, todos)
+      setTodos(updatedTodos)
+    })
+  }
 
   const deleteTodo = id => {
     const isDiffItem = isDiff(id)
@@ -93,7 +124,7 @@ const App = () => {
     <div>
       <Header addTodo={addTodo} />
       <section>
-        <TodoList>{map(todos, renderTodo)} </TodoList>
+        <TodoList>{map(renderTodo, todos)} </TodoList>
       </section>
     </div>
   )

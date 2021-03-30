@@ -17,7 +17,7 @@ function TodoItem ({ todo, editTodo, deleteTodo }) {
     if (text.length === 0) {
       deleteTodo(todo.id)
     } else {
-      editTodo(todo.id, merge(todo, { text: text }))
+      editTodo(merge(todo, { text: text }))
     }
     setEditing(false)
   }
