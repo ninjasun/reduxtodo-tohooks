@@ -53,8 +53,14 @@ const bulkUpdateFromAPI = curry((baseURL, endPoint, data, cb) => {
     body: JSON.stringify(data),
     headers
   })
-    .then(res => res.json())
-    .then(data => cb(data))
+    .then(res => {
+      console.log('res ', res)
+      res.json()
+    })
+    .then(data => {
+      console.log('data ', data)
+      cb(data)
+    })
     .catch(err => console.error(err.message))
 })
 

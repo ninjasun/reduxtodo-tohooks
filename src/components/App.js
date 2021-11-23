@@ -14,16 +14,25 @@ import {
   bulkUpdateTodos,
   bulkDeleteTodos
 } from '../API/todos'
+import { FiltersProvider, useFilters } from '../hooks/useFilters'
+
+const Main = () => {
+  return (
+    <div>
+      <FiltersProvider>
+        <Main />
+      </FiltersProvider>
+    </div>
+  )
+}
 
 const getTodosCount = list => list.length
 const getCompletedTodosCount = reduce((count, item) =>
   item.completed ? count + 1 : count
 )
-
 const getActiveTodosCount = reduce((count, item) =>
   !item.completed ? count + 1 : count
 )
-
 const renderTodos = curry((todos, filterType) => {
   const compare = setupCompare(filterType)
   return filter(compare, todos)
@@ -44,14 +53,17 @@ const setupCompare = filterType => {
       return showAll
   }
 }
-
 const complete = item => ({ ...item, completed: true })
 
+/********* STATUS ENUM **********/
+const _idle = 'IDLE'
+const _success = 'SUCCESS'
+const _fetching = 'FETCHING'
+const _error = 'ERROR'
 /************************************************ */
 const App = () => {
   const [todos, setTodos] = useState([])
-  const [filterType, setFilter] = useState(SHOW_ALL)
-
+  const { filterType } = useFilters()
   const filteredTodos = renderTodos(todos, filterType)
 
   useEffect(() => {
@@ -62,6 +74,7 @@ const App = () => {
 
   useEffect(() => {
     setupCompare(filterType)
+    console.log('app filterType; ', filterType)
   }, [filterType])
 
   const addTodo = text => {
@@ -78,8 +91,7 @@ const App = () => {
 
   const completeAllTodos = () => {
     const completed = map(complete, todos)
-
-    bulkUpdateTodos({ todos: completed })(replaceAll(setTodos))
+    bulkUpdateTodos({ todos: completed }, setTodos)
   }
 
   const destroyAllTodos = () => {
@@ -89,7 +101,7 @@ const App = () => {
 
   const handleFilter = (e, filter) => {
     e.preventDefault()
-    setFilter(filter)
+    //setFilter(filter)
   }
 
   const renderTodo = todo => (
@@ -106,7 +118,7 @@ const App = () => {
   const activeCount = getActiveTodosCount(0, todos)
 
   return (
-    <div>
+    <Main>
       <Header addTodo={addTodo} />
       <section className='main'>
         <span>
@@ -124,10 +136,8 @@ const App = () => {
         activeCount={activeCount}
         completedCount={completedCount}
         onClearCompleted={destroyAllTodos}
-        setFilter={handleFilter}
-        filterType={filterType}
       />
-    </div>
+    </Main>
   )
 }
 

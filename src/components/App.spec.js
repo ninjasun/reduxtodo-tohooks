@@ -1,9 +1,8 @@
 import React from 'react'
 import { createRenderer } from 'react-test-renderer/shallow'
 import App from './App'
-import Header from '../containers/Header'
-import MainSection from '../containers/MainSection'
-
+import Header from './header/Header'
+import TodoList from './todo-list/TodoList'
 
 const setup = propOverrides => {
   const renderer = createRenderer()
@@ -16,16 +15,17 @@ describe('components', () => {
   describe('Header', () => {
     it('should render', () => {
       const output = setup()
-      const [ header ] = output.props.children
+      const [header] = output.props.children
       expect(header.type).toBe(Header)
     })
   })
-  
-  describe('Mainsection', () => {
+
+  describe('Todolist', () => {
     it('should render', () => {
       const output = setup()
-      const [ , mainSection ] = output.props.children
-      expect(mainSection.type).toBe(MainSection)
+      debugger
+      const [, todoList] = output.props.children
+      expect(todoList.type).toBe(TodoList)
     })
   })
 })

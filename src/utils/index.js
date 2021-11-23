@@ -12,6 +12,8 @@ const replaceItem = curry((list, cb, item) => {
 })
 
 const replaceAll = curry((cb, list) => {
+  console.log('list ', list)
+  debugger
   cb(list)
 })
 
